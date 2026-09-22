@@ -2,10 +2,16 @@ import os
 import requests
 from strategy import StrategyEngine
 
+
 TOKEN = os.environ["TELEGRAM_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 API_KEY = os.environ["TWELVE_DATA_API_KEY"]
-TEST_TELEGRAM = os.getenv("TEST_TELEGRAM", "false").lower() == "true"
+
+TEST_TELEGRAM = os.getenv(
+    "TEST_TELEGRAM",
+    "false"
+).lower() == "true"
+
 SYMBOLS = [
     x.strip()
     for x in os.getenv(
@@ -81,6 +87,18 @@ def main():
 
     signals_sent = 0
 
+    if TEST_TELEGRAM:
+
+        send_telegram(
+            "✅ ZAM Strategy Signals — "
+            "Telegram connection test successful.\n"
+            "Manual execution only. No trade was opened."
+        )
+
+        print("Telegram test message sent.")
+
+        return
+
     for symbol in SYMBOLS:
 
         try:
@@ -138,4 +156,5 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()
