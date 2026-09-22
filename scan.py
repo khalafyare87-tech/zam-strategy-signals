@@ -5,7 +5,7 @@ from strategy import StrategyEngine
 TOKEN = os.environ["TELEGRAM_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 API_KEY = os.environ["TWELVE_DATA_API_KEY"]
-
+TEST_TELEGRAM = os.getenv("TEST_TELEGRAM", "false").lower() == "true"
 SYMBOLS = [
     x.strip()
     for x in os.getenv(
