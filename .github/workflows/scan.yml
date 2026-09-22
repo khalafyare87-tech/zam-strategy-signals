@@ -3,6 +3,7 @@ name: Strategy Signal Scan
 on:
   schedule:
     - cron: "*/15 * * * *"
+
   workflow_dispatch:
     inputs:
       test_telegram:
@@ -10,6 +11,7 @@ on:
         required: true
         default: false
         type: boolean
+
 jobs:
   scan:
     runs-on: ubuntu-latest
@@ -32,4 +34,5 @@ jobs:
           CHAT_ID: ${{ secrets.CHAT_ID }}
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
           SYMBOLS: XAU/USD,EUR/USD,GBP/USD
+          TEST_TELEGRAM: ${{ inputs.test_telegram }}
         run: python scan.py
