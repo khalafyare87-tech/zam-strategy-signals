@@ -1,60 +1,25 @@
-import os
-import requests
-from datetime import datetime, timedelta, timezone
-from strategy import StrategyEngine
+name: ZAM Strategy Backtest
 
-API_KEY = os.environ["TWELVE_DATA_API_KEY"]
-SYMBOLS = ["XAU/USD", "EUR/USD", "GBP/USD"]
+on:
+  workflow_dispatch:
 
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
 
-def get_data(symbol, interval, outputsize):
-    r = requests.get(
-        "https://api.twelvedata.com/time_series",
-        params={
-            "symbol": symbol,
-            "interval": interval,
-            "outputsize": outputsize,
-            "apikey": API_KEY,
-            "format": "JSON",
-        },
-        timeout=30,
-    )
-    r.raise_for_status()
-    data = r.json()
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    if "values" not in data:
-        raise RuntimeError(f"{symbol} {interval}: {data}")
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-    return list(reversed(data["values"]))
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-
-def dt(candle):
-    return datetime.strptime(
-        candle["datetime"], "%Y-%m-%d %H:%M:%S"
-    ).replace(tzinfo=timezone.utc)
-
-
-def outcome(signal, future):
-    entry = float(signal["entry"])
-    sl = float(signal["sl"])
-    tp = float(signal["tp1"])
-    side = signal["side"]
-
-    for candle in future:
-        high = float(candle["high"])
-        low = float(candle["low"])
-
-        if side == "BUY":
-            sl_hit = low <= sl
-            tp_hit = high >= tp
-        else:
-            sl_hit = high >= sl
-            tp_hit = low <= tp
-
-        # Conservative rule:
-        # if both TP and SL occur inside the same M15 candle,
-        # count SL because intrabar order is unknown.
-        if sl_hit and tp_hit:
-            return "SL", candle["datetime"]
-
-       
+      - name: Backtest
+        env:
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+        run: python backtest.py
